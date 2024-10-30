@@ -1,5 +1,5 @@
-appId: com.fileconverter.app
-productName: Image Converter
+appId: com.file-converter.app
+productName: File Converter
 directories:
     buildResources: build
 files:
@@ -13,7 +13,7 @@ files:
 asarUnpack:
     - resources/**
 win:
-    executableName: Image Converter
+    executableName: File Converter
     icon: resources/icon.png
 nsis:
     artifactName: ${name}-${version}-setup.${ext}
