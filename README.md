@@ -1,4 +1,4 @@
-# example-converter
+# file-converter
 
 An Electron application with React and TypeScript
 
