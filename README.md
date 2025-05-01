@@ -1,4 +1,4 @@
-# file-converter
+# File Converter v1.0.2
 
 An Electron application with React and TypeScript
 
