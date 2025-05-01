@@ -150,7 +150,6 @@ const ImageConverted = () => {
         );
     }
 
-    // Multiple images display
     return (
         <div className='mt-6 bg-white p-4 rounded-lg shadow-sm'>
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3'>
