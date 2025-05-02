@@ -34,13 +34,13 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
     }
 
     return (
-        <div className='mt-3 mb-1'>
-            <label className='block text-gray-700 text-xs font-medium mb-1'>Cores recentes:</label>
-            <div className='flex flex-wrap gap-1'>
+        <div className='mt-1'>
+            <label className='text-xs text-gray-500'>Recentes:</label>
+            <div className='flex flex-wrap gap-1 mt-0.5'>
                 {colorHistory.map((color, index) => (
                     <button
                         key={`${color}-${index}`}
-                        className='w-6 h-6 rounded-md border border-gray-300 cursor-pointer'
+                        className='w-4 h-4 rounded border border-gray-300 cursor-pointer'
                         style={{ backgroundColor: color }}
                         onClick={() => onSelectColor(color)}
                         title={color}

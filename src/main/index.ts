@@ -5,9 +5,11 @@ import icon from '../../resources/favicon.png?asset';
 
 function createWindow(): void {
     const mainWindow = new BrowserWindow({
-        width: 900,
-        height: 670,
+        width: 1300,
+        height: 770,
         show: false,
+        maximizable: true,
+        resizable: true,
         frame: false,
         autoHideMenuBar: true,
         icon,
@@ -21,6 +23,7 @@ function createWindow(): void {
 
     mainWindow.on('ready-to-show', () => {
         mainWindow.show();
+        mainWindow.maximize();
     });
 
     mainWindow.webContents.setWindowOpenHandler((details) => {
