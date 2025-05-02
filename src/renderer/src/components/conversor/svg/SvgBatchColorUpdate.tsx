@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSvgColorEditor } from './SvgColorEditorContext';
 
 interface SvgBatchColorUpdateProps {
@@ -12,6 +12,36 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
     const [applyToAll, setApplyToAll] = useState(false);
     const [similarElements, setSimilarElements] = useState<string[]>([]);
     const [lastAppliedColor, setLastAppliedColor] = useState<string | null>(null);
+    const isChangingRef = useRef(false);
+    const timeoutRef = useRef<number | null>(null);
+
+    const updateColorHistory = (color: string) => {
+        const historyStr = localStorage.getItem('colorHistory') || '[]';
+        let history: string[] = [];
+
+        try {
+            history = JSON.parse(historyStr);
+        } catch (e) {
+            console.error('Erro ao analisar histórico de cores:', e);
+        }
+
+        history = history.filter((c) => c !== color);
+        history.unshift(color);
+
+        history = history.slice(0, 12);
+
+        localStorage.setItem('colorHistory', JSON.stringify(history));
+
+        const event = new CustomEvent('colorHistoryUpdated');
+        window.dispatchEvent(event);
+    };
+
+    const clearCurrentTimeout = () => {
+        if (timeoutRef.current !== null) {
+            window.clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+        }
+    };
 
     useEffect(() => {
         if (!selectedElement) {
@@ -51,6 +81,17 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
             updateMultipleElementColors(similarElements, currentColor);
             onUpdateComplete();
 
+            isChangingRef.current = true;
+            clearCurrentTimeout();
+
+            timeoutRef.current = window.setTimeout(() => {
+                isChangingRef.current = false;
+
+                if (currentColor && currentColor !== 'none' && currentColor !== 'transparent') {
+                    updateColorHistory(currentColor);
+                }
+            }, 1000);
+
             console.log(`Applied ${editMode} color ${currentColor} to ${similarElements.length} elements`);
         }
     }, [applyToAll, selectedElement, svgElements, editMode, similarElements, updateMultipleElementColors, onUpdateComplete, lastAppliedColor]);
@@ -66,10 +107,20 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
                 updateMultipleElementColors(similarElements, currentColor);
                 onUpdateComplete();
 
+                if (currentColor && currentColor !== 'none' && currentColor !== 'transparent') {
+                    updateColorHistory(currentColor);
+                }
+
                 console.log(`Initially applied ${editMode} color ${currentColor} to ${similarElements.length} elements`);
             }
         }
     }, [applyToAll]);
+
+    useEffect(() => {
+        return () => {
+            clearCurrentTimeout();
+        };
+    }, []);
 
     if (similarElements.length === 0) {
         return null;
@@ -104,7 +155,23 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
             {isExpanded && (
                 <div className='mt-1 pl-2 border-l border-blue-100'>
                     {!applyToAll && (
-                        <button onClick={() => setApplyToAll(true)} className='w-full py-0.5 px-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition'>
+                        <button
+                            onClick={() => {
+                                const selectedEl = svgElements.find((el) => el.id === selectedElement);
+                                if (!selectedEl) return;
+
+                                const currentColor = editMode === 'fill' ? selectedEl.currentFill : selectedEl.currentStroke;
+
+                                const newColor = window.prompt('Nova cor (ex: #ff0000)', currentColor || '#000000');
+                                if (newColor) {
+                                    updateMultipleElementColors(similarElements, newColor);
+                                    onUpdateComplete();
+
+                                    updateColorHistory(newColor);
+                                }
+                            }}
+                            className='w-full py-0.5 px-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition'
+                        >
                             Alterar cor de todos
                         </button>
                     )}

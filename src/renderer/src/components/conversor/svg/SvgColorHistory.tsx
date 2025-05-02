@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSvgColorEditor } from './SvgColorEditorContext';
 
-const MAX_HISTORY_COLORS = 8;
+const MAX_HISTORY_COLORS = 12;
 
 interface ColorHistoryProps {
     onSelectColor: (color: string) => void;
@@ -13,6 +13,30 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
     const lastColorRef = useRef<string | null>(null);
     const isChangingRef = useRef(false);
     const timeoutRef = useRef<number | null>(null);
+
+    const loadColorHistory = () => {
+        const historyStr = localStorage.getItem('colorHistory') || '[]';
+        try {
+            return JSON.parse(historyStr);
+        } catch (e) {
+            console.error('Erro ao analisar histórico de cores:', e);
+            return [];
+        }
+    };
+
+    useEffect(() => {
+        const handleHistoryUpdate = () => {
+            setColorHistory(loadColorHistory());
+        };
+
+        window.addEventListener('colorHistoryUpdated', handleHistoryUpdate);
+
+        setColorHistory(loadColorHistory());
+
+        return () => {
+            window.removeEventListener('colorHistoryUpdated', handleHistoryUpdate);
+        };
+    }, []);
 
     useEffect(() => {
         if (!selectedElement) return;
@@ -33,24 +57,28 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
                 timeoutRef.current = window.setTimeout(() => {
                     isChangingRef.current = false;
 
-                    setColorHistory((prev) => {
-                        if (!currentColor) return prev;
+                    const history = loadColorHistory();
 
-                        const filtered = prev.filter((c) => c !== currentColor);
-                        return [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
-                    });
+                    const filtered = history.filter((c: string) => c !== currentColor);
+                    const newHistory = [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
+
+                    localStorage.setItem('colorHistory', JSON.stringify(newHistory));
+
+                    setColorHistory(newHistory);
                 }, 1000);
             } else {
                 isChangingRef.current = true;
                 timeoutRef.current = window.setTimeout(() => {
                     isChangingRef.current = false;
 
-                    setColorHistory((prev) => {
-                        if (!currentColor) return prev;
+                    const history = loadColorHistory();
 
-                        const filtered = prev.filter((c) => c !== currentColor);
-                        return [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
-                    });
+                    const filtered = history.filter((c: string) => c !== currentColor);
+                    const newHistory = [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
+
+                    localStorage.setItem('colorHistory', JSON.stringify(newHistory));
+
+                    setColorHistory(newHistory);
                 }, 1000);
             }
         }
@@ -62,29 +90,17 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
         };
     }, [selectedElement, svgElements, editMode]);
 
-    useEffect(() => {
-        const initialColors = svgElements
-            .map((el) => (editMode === 'fill' ? el.currentFill : el.currentStroke))
-            .filter((color): color is string => color !== null && color !== undefined && color !== 'none' && color !== 'transparent');
-
-        const uniqueColors = [...new Set(initialColors)];
-
-        if (uniqueColors.length > 0) {
-            setColorHistory((prev) => {
-                const newColors = uniqueColors.filter((color) => !prev.includes(color));
-                return [...prev, ...newColors].slice(0, MAX_HISTORY_COLORS);
-            });
-        }
-    }, []);
-
     const handleColorSelect = (color: string) => {
         if (selectedElement) {
             updateElementColor(selectedElement, color);
 
-            setColorHistory((prev) => {
-                const filtered = prev.filter((c) => c !== color);
-                return [color, ...filtered];
-            });
+            const history = loadColorHistory();
+            const filtered = history.filter((c: string) => c !== color);
+            const newHistory = [color, ...filtered];
+
+            localStorage.setItem('colorHistory', JSON.stringify(newHistory));
+
+            setColorHistory(newHistory);
 
             lastColorRef.current = color;
         }
