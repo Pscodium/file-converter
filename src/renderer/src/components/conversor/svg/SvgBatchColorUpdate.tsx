@@ -114,7 +114,7 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
                         <div className='flex flex-wrap gap-1 mt-1'>
                             {similarElements.slice(0, 6).map((id, _index) => (
                                 <span key={id} className='text-xs bg-gray-100 px-1 rounded truncate max-w-xs' title={id}>
-                                    {id.length > 8 ? `${id.substring(0, 8)}...` : id}
+                                    {id}
                                 </span>
                             ))}
                             {similarElements.length > 6 && <span className='text-xs italic'>+{similarElements.length - 6}</span>}

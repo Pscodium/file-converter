@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSvgColorEditor } from './SvgColorEditorContext';
 
-const MAX_HISTORY_COLORS = 12;
+const MAX_HISTORY_COLORS = 8;
 
 interface ColorHistoryProps {
     onSelectColor: (color: string) => void;
@@ -10,6 +10,9 @@ interface ColorHistoryProps {
 const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
     const [colorHistory, setColorHistory] = useState<string[]>([]);
     const { svgElements, editMode, selectedElement, updateElementColor } = useSvgColorEditor();
+    const lastColorRef = useRef<string | null>(null);
+    const isChangingRef = useRef(false);
+    const timeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!selectedElement) return;
@@ -19,12 +22,44 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
 
         const currentColor = editMode === 'fill' ? selectedEl.currentFill : selectedEl.currentStroke;
 
-        if (currentColor && currentColor !== 'none' && currentColor !== 'transparent') {
-            setColorHistory((prev) => {
-                const filtered = prev.filter((c) => c !== currentColor);
-                return [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
-            });
+        if (currentColor && currentColor !== 'none' && currentColor !== 'transparent' && currentColor !== lastColorRef.current) {
+            lastColorRef.current = currentColor;
+
+            if (isChangingRef.current) {
+                if (timeoutRef.current !== null) {
+                    window.clearTimeout(timeoutRef.current);
+                }
+
+                timeoutRef.current = window.setTimeout(() => {
+                    isChangingRef.current = false;
+
+                    setColorHistory((prev) => {
+                        if (!currentColor) return prev;
+
+                        const filtered = prev.filter((c) => c !== currentColor);
+                        return [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
+                    });
+                }, 1000);
+            } else {
+                isChangingRef.current = true;
+                timeoutRef.current = window.setTimeout(() => {
+                    isChangingRef.current = false;
+
+                    setColorHistory((prev) => {
+                        if (!currentColor) return prev;
+
+                        const filtered = prev.filter((c) => c !== currentColor);
+                        return [currentColor, ...filtered].slice(0, MAX_HISTORY_COLORS);
+                    });
+                }, 1000);
+            }
         }
+
+        return () => {
+            if (timeoutRef.current !== null) {
+                window.clearTimeout(timeoutRef.current);
+            }
+        };
     }, [selectedElement, svgElements, editMode]);
 
     useEffect(() => {
@@ -40,7 +75,7 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
                 return [...prev, ...newColors].slice(0, MAX_HISTORY_COLORS);
             });
         }
-    }, [svgElements, editMode]);
+    }, []);
 
     const handleColorSelect = (color: string) => {
         if (selectedElement) {
@@ -48,8 +83,10 @@ const SvgColorHistory: React.FC<ColorHistoryProps> = ({ onSelectColor }) => {
 
             setColorHistory((prev) => {
                 const filtered = prev.filter((c) => c !== color);
-                return [color, ...filtered].slice(0, MAX_HISTORY_COLORS);
+                return [color, ...filtered];
             });
+
+            lastColorRef.current = color;
         }
 
         onSelectColor(color);
