@@ -30,7 +30,6 @@ const SvgEditorInner: React.FC = () => {
         return () => window.removeEventListener('resize', updateDimensions);
     }, []);
 
-    // Function to fit SVG content to its container
     const fitSvgToContainer = () => {
         if (!svgContainerRef.current) return;
 
