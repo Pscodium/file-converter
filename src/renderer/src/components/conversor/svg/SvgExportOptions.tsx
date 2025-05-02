@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IoDownload, IoChevronDown } from 'react-icons/io5';
+import { IoDownload } from 'react-icons/io5';
 import { useSvgColorEditor } from './SvgColorEditorContext';
 
 interface ExportFormat {
@@ -17,19 +17,9 @@ const exportFormats: ExportFormat[] = [
 
 const SvgExportOptions: React.FC = () => {
     const { generateModifiedSvg } = useSvgColorEditor();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(exportFormats[0]);
 
-    const toggleMenu = () => {
-        setIsMenuOpen(!isMenuOpen);
-    };
-
-    const handleFormatSelect = (format: ExportFormat) => {
-        setSelectedFormat(format);
-        setIsMenuOpen(false);
-    };
-
-    const exportSvg = async () => {
+    const exportFile = async () => {
         const modifiedSvg = generateModifiedSvg();
         if (!modifiedSvg) return;
 
@@ -100,38 +90,33 @@ const SvgExportOptions: React.FC = () => {
     };
 
     return (
-        <div className='relative mt-4'>
-            <div className='flex space-x-2'>
-                <button onClick={exportSvg} className='flex-1 py-2 h-10 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center'>
+        <div className='mb-2'>
+            <div className='flex justify-between items-center mb-1'>
+                <label className='text-xs text-gray-700 font-medium'>Formato de exportação:</label>
+            </div>
+
+            <div className='flex space-x-1'>
+                <div className='relative'>
+                    <select
+                        value={selectedFormat.id}
+                        onChange={(e) => {
+                            const format = exportFormats.find((f) => f.id === e.target.value);
+                            if (format) setSelectedFormat(format);
+                        }}
+                        className='w-24 py-1 px-2 border border-gray-300 rounded-md text-xs'
+                    >
+                        {exportFormats.map((format) => (
+                            <option key={format.id} value={format.id}>
+                                {format.name}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
+                <button onClick={exportFile} className='flex-1 py-1 h-7 px-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center text-xs'>
                     <IoDownload className='mr-1' />
                     Baixar {selectedFormat.name}
                 </button>
-
-                <div className='relative'>
-                    <button onClick={toggleMenu} className='py-2 h-10 px-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md flex items-center justify-center'>
-                        <IoChevronDown className={`transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {isMenuOpen && (
-                        <div className='absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10'>
-                            <ul>
-                                {exportFormats.map((format) => (
-                                    <li key={format.id}>
-                                        <button
-                                            onClick={() => handleFormatSelect(format)}
-                                            className={`
-                                                w-full text-left px-4 py-2 text-sm
-                                                ${selectedFormat.id === format.id ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'}
-                                            `}
-                                        >
-                                            Exportar como {format.name}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-                </div>
             </div>
         </div>
     );
