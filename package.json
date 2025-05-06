@@ -1,6 +1,6 @@
 {
     "name": "file-converter",
-    "version": "1.0.3",
+    "version": "1.0.31",
     "description": "Peterson file converter",
     "main": "./out/main/index.js",
     "author": "Peterson Larson",

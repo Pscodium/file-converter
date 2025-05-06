@@ -7,9 +7,8 @@ interface SvgBatchColorUpdateProps {
 }
 
 const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateComplete }) => {
-    const { svgElements, selectedElement, editMode, updateMultipleElementColors } = useSvgColorEditor();
+    const { svgElements, selectedElement, editMode, updateMultipleElementColors, applyColorToAll, setApplyColorToAll } = useSvgColorEditor();
     const [isExpanded, setIsExpanded] = useState(false);
-    const [applyToAll, setApplyToAll] = useState(false);
     const [similarElements, setSimilarElements] = useState<string[]>([]);
     const [lastAppliedColor, setLastAppliedColor] = useState<string | null>(null);
     const isChangingRef = useRef(false);
@@ -68,7 +67,7 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
     }, [selectedElement, editMode, svgElements]);
 
     useEffect(() => {
-        if (!applyToAll || !selectedElement || similarElements.length === 0) return;
+        if (!applyColorToAll || !selectedElement || similarElements.length === 0) return;
 
         const selectedEl = svgElements.find((el) => el.id === selectedElement);
         if (!selectedEl) return;
@@ -94,10 +93,10 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
 
             console.log(`Applied ${editMode} color ${currentColor} to ${similarElements.length} elements`);
         }
-    }, [applyToAll, selectedElement, svgElements, editMode, similarElements, updateMultipleElementColors, onUpdateComplete, lastAppliedColor]);
+    }, [applyColorToAll, selectedElement, svgElements, editMode, similarElements, updateMultipleElementColors, onUpdateComplete, lastAppliedColor]);
 
     useEffect(() => {
-        if (applyToAll && selectedElement && similarElements.length > 0) {
+        if (applyColorToAll && selectedElement && similarElements.length > 0) {
             const selectedEl = svgElements.find((el) => el.id === selectedElement);
             if (!selectedEl) return;
 
@@ -114,7 +113,7 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
                 console.log(`Initially applied ${editMode} color ${currentColor} to ${similarElements.length} elements`);
             }
         }
-    }, [applyToAll]);
+    }, [applyColorToAll]);
 
     useEffect(() => {
         return () => {
@@ -145,7 +144,7 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
                 </button>
 
                 <div className='flex items-center'>
-                    <input type='checkbox' id='applyToAll' checked={applyToAll} onChange={() => setApplyToAll(!applyToAll)} className='mr-1' />
+                    <input type='checkbox' id='applyToAll' checked={applyColorToAll} onChange={() => setApplyColorToAll(!applyColorToAll)} className='mr-1' />
                     <label htmlFor='applyToAll' className='text-xs cursor-pointer'>
                         Aplicar a todos
                     </label>
@@ -154,22 +153,9 @@ const SvgBatchColorUpdate: React.FC<SvgBatchColorUpdateProps> = ({ onUpdateCompl
 
             {isExpanded && (
                 <div className='mt-1 pl-2 border-l border-blue-100'>
-                    {!applyToAll && (
+                    {!applyColorToAll && (
                         <button
-                            onClick={() => {
-                                const selectedEl = svgElements.find((el) => el.id === selectedElement);
-                                if (!selectedEl) return;
-
-                                const currentColor = editMode === 'fill' ? selectedEl.currentFill : selectedEl.currentStroke;
-
-                                const newColor = window.prompt('Nova cor (ex: #ff0000)', currentColor || '#000000');
-                                if (newColor) {
-                                    updateMultipleElementColors(similarElements, newColor);
-                                    onUpdateComplete();
-
-                                    updateColorHistory(newColor);
-                                }
-                            }}
+                            onClick={() => setApplyColorToAll(!applyColorToAll)}
                             className='w-full py-0.5 px-1 text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition'
                         >
                             Alterar cor de todos

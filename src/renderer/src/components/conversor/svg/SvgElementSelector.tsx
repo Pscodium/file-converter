@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useSvgColorEditor } from './SvgColorEditorContext';
 
 const SvgElementSelector: React.FC = () => {
-    const { svgElements, selectedElement, setSelectedElement, editMode } = useSvgColorEditor();
+    const { svgElements, selectedElement, setSelectedElement, editMode, setApplyColorToAll } = useSvgColorEditor();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isHovering, setIsHovering] = useState<string | null>(null);
 
     const handleElementSelect = (id: string) => {
+        setApplyColorToAll(false);
         setSelectedElement(id);
 
         const svgContainer = document.querySelector('svg');
