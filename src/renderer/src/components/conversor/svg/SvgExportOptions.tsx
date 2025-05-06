@@ -16,7 +16,7 @@ const exportFormats: ExportFormat[] = [
 ];
 
 const SvgExportOptions: React.FC = () => {
-    const { generateModifiedSvg } = useSvgColorEditor();
+    const { generateModifiedSvg, exportSize, setExportSize } = useSvgColorEditor();
     const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(exportFormats[0]);
 
     const exportFile = async () => {
@@ -42,20 +42,14 @@ const SvgExportOptions: React.FC = () => {
 
             const svgWidth = svgElement.getAttribute('width');
             const svgHeight = svgElement.getAttribute('height');
-            const svgViewBox = svgElement.getAttribute('viewBox');
+            // const svgViewBox = svgElement.getAttribute('viewBox');
 
-            let width = 800;
-            let height = 600;
+            let width = exportSize.width;
+            let height = exportSize.height;
 
             if (svgWidth && svgHeight) {
                 width = parseInt(svgWidth);
                 height = parseInt(svgHeight);
-            } else if (svgViewBox) {
-                const viewBoxParts = svgViewBox.split(' ');
-                if (viewBoxParts.length === 4) {
-                    width = parseInt(viewBoxParts[2]);
-                    height = parseInt(viewBoxParts[3]);
-                }
             }
 
             const canvas = document.createElement('canvas');
@@ -91,32 +85,57 @@ const SvgExportOptions: React.FC = () => {
 
     return (
         <div className='mb-2'>
-            <div className='flex justify-between items-center mb-1'>
-                <label className='text-xs text-gray-700 font-medium'>Formato de exportação:</label>
-            </div>
+            <div className='flex space-x-1 items-center h-12'>
+                <div className='h-full flex flex-col justify-end'>
+                    <div className='flex justify-between items-center mb-1'>
+                        <label className='text-xs text-gray-700 font-medium'>Formato:</label>
+                    </div>
 
-            <div className='flex space-x-1'>
-                <div className='relative'>
-                    <select
-                        value={selectedFormat.id}
-                        onChange={(e) => {
-                            const format = exportFormats.find((f) => f.id === e.target.value);
-                            if (format) setSelectedFormat(format);
-                        }}
-                        className='w-24 py-1 px-2 border border-gray-300 rounded-md text-xs'
-                    >
-                        {exportFormats.map((format) => (
-                            <option key={format.id} value={format.id}>
-                                {format.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className='relative'>
+                        <select
+                            value={selectedFormat.id}
+                            onChange={(e) => {
+                                const format = exportFormats.find((f) => f.id === e.target.value);
+                                if (format) setSelectedFormat(format);
+                            }}
+                            className='w-24 py-1 px-2 border border-gray-300 rounded-md text-xs'
+                        >
+                            {exportFormats.map((format) => (
+                                <option key={format.id} value={format.id}>
+                                    {format.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-
-                <button onClick={exportFile} className='flex-1 py-1 h-7 px-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center justify-center text-xs'>
-                    <IoDownload className='mr-1' />
-                    Baixar {selectedFormat.name}
-                </button>
+                <div className='h-full justify-end flex flex-col'>
+                    <div className='flex justify-between items-center mb-1'>
+                        <label className='text-xs text-gray-700 font-medium'>Resolução:</label>
+                    </div>
+                    <div className='flex gap-[1px]'>
+                        <input
+                            type='text'
+                            value={exportSize.height}
+                            onChange={(e) => setExportSize({ ...exportSize, height: parseInt(e.target.value, 10) })}
+                            placeholder='800'
+                            className='w-14 border border-gray-300 p-1 py-[5px] text-xs rounded-md'
+                        />
+                        <p className='text-gray-400'>X</p>
+                        <input
+                            type='text'
+                            value={exportSize.width}
+                            onChange={(e) => setExportSize({ ...exportSize, width: parseInt(e.target.value, 10) })}
+                            placeholder='800'
+                            className='w-14 border border-gray-300 p-1 text-xs rounded-md'
+                        />
+                    </div>
+                </div>
+                <div className='flex flex-1 h-full items-end'>
+                    <button onClick={exportFile} className='py-1 flex-1 h-7 px-2 flex items-center justify-center bg-blue-600 text-white rounded-md hover:bg-blue-700 text-xs'>
+                        <IoDownload className='mr-1' />
+                        Baixar {selectedFormat.name}
+                    </button>
+                </div>
             </div>
         </div>
     );

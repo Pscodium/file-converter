@@ -9,6 +9,11 @@ export interface PathElement {
     currentStroke: string | null;
 }
 
+export interface ExportSize {
+    width: number;
+    height: number;
+}
+
 type SvgColorEditorContextType = {
     svgContent: string | null;
     setSvgContent: React.Dispatch<React.SetStateAction<string | null>>;
@@ -17,6 +22,10 @@ type SvgColorEditorContextType = {
     selectedElement: string | null;
     setSelectedElement: React.Dispatch<React.SetStateAction<string | null>>;
     editMode: 'fill' | 'stroke';
+    applyColorToAll: boolean;
+    setApplyColorToAll: React.Dispatch<React.SetStateAction<boolean>>;
+    exportSize: ExportSize;
+    setExportSize: React.Dispatch<React.SetStateAction<ExportSize>>;
     setEditMode: React.Dispatch<React.SetStateAction<'fill' | 'stroke'>>;
     updateElementColor: (id: string, color: string) => void;
     updateMultipleElementColors: (ids: string[], color: string) => void;
@@ -42,6 +51,8 @@ type ProviderProps = {
 export const SvgColorEditorProvider: React.FC<ProviderProps> = ({ children }) => {
     const [svgContent, setSvgContent] = useState<string | null>(null);
     const [svgElements, setSvgElements] = useState<PathElement[]>([]);
+    const [exportSize, setExportSize] = useState<ExportSize>({ width: 800, height: 800 });
+    const [applyColorToAll, setApplyColorToAll] = useState(false);
     const [selectedElement, setSelectedElement] = useState<string | null>(null);
     const [editMode, setEditMode] = useState<'fill' | 'stroke'>('fill');
 
@@ -206,6 +217,10 @@ export const SvgColorEditorProvider: React.FC<ProviderProps> = ({ children }) =>
         <SvgColorEditorContext.Provider
             value={{
                 svgContent,
+                exportSize,
+                setExportSize,
+                applyColorToAll,
+                setApplyColorToAll,
                 setSvgContent,
                 svgElements,
                 setSvgElements,
